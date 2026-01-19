@@ -138,3 +138,39 @@ class TaskManager:
         total = len(pizarra['tareas'])
         completadas = sum(1 for t in pizarra['tareas'] if t['completada'])
         return completadas, total
+
+    @staticmethod
+    def reordenar_tarea(pizarra: Dict, tarea_id: str, posiciones: int) -> bool:
+        """
+        Mueve una tarea hacia arriba o abajo en la lista
+
+        Args:
+            pizarra: Diccionario de la pizarra
+            tarea_id: ID de la tarea a mover
+            posiciones: Número de posiciones a mover (negativo=arriba, positivo=abajo)
+
+        Returns:
+            True si se reordenó correctamente
+        """
+        tareas = pizarra['tareas']
+        indice_actual = None
+
+        for i, tarea in enumerate(tareas):
+            if tarea['id'] == tarea_id:
+                indice_actual = i
+                break
+
+        if indice_actual is None:
+            return False
+
+        # Calcular nuevo índice respetando límites
+        nuevo_indice = indice_actual + posiciones
+        nuevo_indice = max(0, min(nuevo_indice, len(tareas) - 1))
+
+        if nuevo_indice == indice_actual:
+            return False
+
+        # Extraer la tarea y reinsertarla en la nueva posición
+        tarea = tareas.pop(indice_actual)
+        tareas.insert(nuevo_indice, tarea)
+        return True

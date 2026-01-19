@@ -1,5 +1,4 @@
-# Pizarrón Digital
-
+# Pizarrón Virtual
 Una aplicación minimalista de escritorio para gestionar tareas pendientes con la estética de un pizarrón escolar.
 
 ## Características
@@ -55,6 +54,7 @@ python main.py
 - Elimina tareas usando el botón X
 - Visualiza el contador de tareas completadas en la esquina superior derecha
 - **Doble click** en una tarea para editarla (solo tareas pendientes)
+- **Arrastra** el icono ⋮⋮ para reordenar las tareas
 
 **Edición de Pizarras:**
 - **Doble click** en el nombre de una pestaña para renombrarla
@@ -96,7 +96,7 @@ Los datos se guardan automáticamente en:
 
 ## Estado del Proyecto
 
-🚧 **En desarrollo - Fase 4 completada**
+🚧 **En desarrollo - Fase 5 completada**
 
 ### Fase 1: Setup Inicial ✅
 - ✅ Estructura base del proyecto
@@ -127,8 +127,12 @@ Los datos se guardan automáticamente en:
 - ✅ Confirmación con Enter, cancelación con Escape
 - ✅ Validaciones de nombre (máx. 20 caracteres, no duplicados)
 
+### Fase 5: Drag & Drop ✅
+- ✅ Arrastrar tareas para reordenarlas
+- ✅ Icono de agarre (grip) para indicar área de arrastre
+- ✅ Feedback visual durante el arrastre
+
 ### Próximos Pasos
-- ⏳ Drag & drop para reordenar tareas
 - ⏳ Filtros (todas/pendientes/completadas)
 - ⏳ Búsqueda de tareas
 - ⏳ Exportar/importar pizarras

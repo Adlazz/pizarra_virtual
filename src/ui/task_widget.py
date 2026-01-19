@@ -9,7 +9,7 @@ from ui.styles import COLORS, FONTS
 class TaskWidget(ctk.CTkFrame):
     """Widget que representa una tarea en el pizarrón"""
 
-    def __init__(self, parent, tarea: dict, on_completar: Callable, on_eliminar: Callable, on_editar: Callable = None, **kwargs):
+    def __init__(self, parent, tarea: dict, on_completar: Callable, on_eliminar: Callable, on_editar: Callable = None, on_reordenar: Callable = None, **kwargs):
         """
         Inicializa el widget de tarea
 
@@ -19,6 +19,7 @@ class TaskWidget(ctk.CTkFrame):
             on_completar: Callback cuando se completa/descompleta la tarea
             on_eliminar: Callback cuando se elimina la tarea
             on_editar: Callback cuando se edita la tarea (doble click)
+            on_reordenar: Callback cuando se reordena la tarea (drag & drop)
         """
         super().__init__(parent, fg_color="transparent", **kwargs)
 
@@ -26,7 +27,10 @@ class TaskWidget(ctk.CTkFrame):
         self.on_completar = on_completar
         self.on_eliminar = on_eliminar
         self.on_editar = on_editar
+        self.on_reordenar = on_reordenar
         self.editando = False
+        self.arrastrando = False
+        self.indice_original = None
 
         self._crear_interfaz()
 
@@ -48,6 +52,22 @@ class TaskWidget(ctk.CTkFrame):
             fg_color="transparent"
         )
         self.inner_frame.pack(fill="x", padx=10, pady=8)
+
+        # Grip para arrastrar (handle de drag)
+        self.grip_label = ctk.CTkLabel(
+            self.inner_frame,
+            text="⋮⋮",
+            font=('Arial', 14),
+            text_color=COLORS['tiza_gris'],
+            width=20,
+            cursor="hand2"
+        )
+        self.grip_label.pack(side="left", padx=(0, 8))
+
+        # Bindings para drag & drop en el grip
+        self.grip_label.bind("<Button-1>", self._iniciar_arrastre)
+        self.grip_label.bind("<B1-Motion>", self._durante_arrastre)
+        self.grip_label.bind("<ButtonRelease-1>", self._finalizar_arrastre)
 
         # Checkbox para marcar como completada
         self.checkbox = ctk.CTkCheckBox(
@@ -221,3 +241,37 @@ class TaskWidget(ctk.CTkFrame):
 
         # Actualizar apariencia
         self._actualizar_apariencia()
+
+    def _iniciar_arrastre(self, event):
+        """Inicia el arrastre de la tarea"""
+        if self.editando:
+            return
+
+        self.arrastrando = True
+        self.start_y = event.y_root
+        self.posiciones_a_mover = 0
+        self.container.configure(border_color=COLORS['tiza_amarilla'], border_width=2)
+
+    def _durante_arrastre(self, event):
+        """Procesa el movimiento durante el arrastre - solo calcula, no aplica"""
+        if not self.arrastrando:
+            return
+
+        # Calcular movimiento acumulado desde el inicio
+        delta_y = event.y_root - self.start_y
+
+        # Calcular cuántas posiciones mover basado en el movimiento total
+        # Cada ~50 pixels equivale a una posición
+        self.posiciones_a_mover = int(delta_y / 50)
+
+    def _finalizar_arrastre(self, event):
+        """Finaliza el arrastre y aplica el movimiento"""
+        if self.arrastrando:
+            self.arrastrando = False
+            self.container.configure(border_color=COLORS['tiza_gris'], border_width=1)
+
+            # Aplicar el movimiento al soltar
+            if self.posiciones_a_mover != 0 and self.on_reordenar:
+                self.on_reordenar(self.tarea['id'], self.posiciones_a_mover)
+
+            self.posiciones_a_mover = 0

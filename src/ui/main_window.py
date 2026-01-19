@@ -471,7 +471,8 @@ class MainWindow(ctk.CTk):
                     tarea,
                     on_completar=self._on_completar_tarea,
                     on_eliminar=self._on_eliminar_tarea,
-                    on_editar=self._on_editar_tarea
+                    on_editar=self._on_editar_tarea,
+                    on_reordenar=self._on_reordenar_tarea
                 )
                 task_widget.pack(fill="x", pady=3)
                 self.task_widgets.append(task_widget)
@@ -624,6 +625,21 @@ class MainWindow(ctk.CTk):
 
         # Guardar datos
         self._guardar_datos()
+
+    def _on_reordenar_tarea(self, tarea_id: str, direccion: int):
+        """Callback cuando se reordena una tarea mediante drag & drop"""
+        # Obtener pizarra activa
+        pizarra_activa = self.tab_manager.obtener_pizarra_activa()
+        if not pizarra_activa:
+            return
+
+        # Reordenar tarea
+        if self.task_manager.reordenar_tarea(pizarra_activa, tarea_id, direccion):
+            # Guardar datos
+            self._guardar_datos()
+
+            # Refrescar contenido
+            self._mostrar_contenido_pizarra()
 
     def _guardar_datos(self):
         """Guarda los datos en el almacenamiento"""
