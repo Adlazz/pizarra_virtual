@@ -59,6 +59,7 @@ python main.py
 **Edición de Pizarras:**
 - **Doble click** en el nombre de una pestaña para renombrarla
 - Presiona Enter para confirmar o Escape para cancelar
+- Click en el botón **×** de la pestaña para eliminar una pizarra (con confirmación)
 
 ### Atajos de Teclado
 
@@ -96,7 +97,7 @@ Los datos se guardan automáticamente en:
 
 ## Estado del Proyecto
 
-🚧 **En desarrollo - Fase 5 completada**
+🚧 **En desarrollo - Fase 6 completada**
 
 ### Fase 1: Setup Inicial ✅
 - ✅ Estructura base del proyecto
@@ -132,11 +133,16 @@ Los datos se guardan automáticamente en:
 - ✅ Icono de agarre (grip) para indicar área de arrastre
 - ✅ Feedback visual durante el arrastre
 
+### Fase 6: Eliminar Pizarras ✅
+- ✅ Botón X en cada pestaña para eliminar
+- ✅ Diálogo de confirmación antes de eliminar
+- ✅ Muestra cantidad de tareas que se perderán
+- ✅ No permite eliminar si es la única pizarra
+
 ### Próximos Pasos
 - ⏳ Filtros (todas/pendientes/completadas)
 - ⏳ Búsqueda de tareas
 - ⏳ Exportar/importar pizarras
-- ⏳ Eliminar pizarras
 
 ## Licencia
 

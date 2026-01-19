@@ -181,6 +181,9 @@ class MainWindow(ctk.CTk):
             widget.destroy()
         self.tab_buttons.clear()
 
+        # Determinar si se puede eliminar (más de una pizarra)
+        puede_eliminar = len(self.tab_manager.pizarras) > 1
+
         # Crear pestaña para cada pizarra
         for i, pizarra in enumerate(self.tab_manager.pizarras):
             es_activa = pizarra['id'] == self.tab_manager.pizarra_activa_id
@@ -190,21 +193,44 @@ class MainWindow(ctk.CTk):
                 self.tabs_frame,
                 fg_color="transparent" if not es_activa else COLORS['pizarra_borde'],
                 corner_radius=8,
-                width=100,
+                width=120 if puede_eliminar else 100,
                 height=35
             )
             tab_frame.pack(side="left", padx=5)
             tab_frame.pack_propagate(False)
 
+            # Frame interior para organizar nombre y botón X
+            tab_inner = ctk.CTkFrame(
+                tab_frame,
+                fg_color="transparent"
+            )
+            tab_inner.pack(expand=True, fill="both", padx=5, pady=5)
+
             # Label del nombre (visible por defecto)
             tab_label = ctk.CTkLabel(
-                tab_frame,
+                tab_inner,
                 text=pizarra['nombre'],
                 font=FONTS['tiza_small'],
                 text_color=COLORS['tiza_blanca'],
                 fg_color="transparent"
             )
-            tab_label.pack(expand=True, fill="both", padx=5, pady=5)
+            tab_label.pack(side="left", expand=True, fill="both")
+
+            # Botón X para eliminar (solo si hay más de una pizarra)
+            if puede_eliminar:
+                btn_eliminar = ctk.CTkButton(
+                    tab_inner,
+                    text="×",
+                    font=('Arial', 14, 'bold'),
+                    fg_color="transparent",
+                    text_color=COLORS['tiza_gris'],
+                    hover_color=COLORS['pizarra_borde'],
+                    width=20,
+                    height=20,
+                    corner_radius=4,
+                    command=lambda pid=pizarra['id']: self._confirmar_eliminar_pizarra(pid)
+                )
+                btn_eliminar.pack(side="right", padx=(5, 0))
 
             # Entry para edición (oculto por defecto)
             tab_entry = ctk.CTkEntry(
@@ -237,6 +263,7 @@ class MainWindow(ctk.CTk):
             # Guardar referencias
             self.tab_buttons[pizarra['id']] = {
                 'frame': tab_frame,
+                'inner': tab_inner,
                 'label': tab_label,
                 'entry': tab_entry
             }
@@ -548,6 +575,95 @@ class MainWindow(ctk.CTk):
 
             # Cambiar a la nueva pizarra
             self.tab_manager.cambiar_pizarra_activa(nueva_pizarra['id'])
+
+    def _confirmar_eliminar_pizarra(self, pizarra_id: str):
+        """Muestra diálogo de confirmación para eliminar una pizarra"""
+        # Obtener la pizarra
+        pizarra = self.tab_manager.obtener_pizarra_por_id(pizarra_id)
+        if not pizarra:
+            return
+
+        # No permitir eliminar si es la única
+        if len(self.tab_manager.pizarras) <= 1:
+            return
+
+        # Contar tareas
+        num_tareas = len(pizarra['tareas'])
+        mensaje = f"¿Eliminar la pizarra '{pizarra['nombre']}'?"
+        if num_tareas > 0:
+            mensaje += f"\n\nSe eliminarán {num_tareas} tarea(s)."
+
+        # Crear diálogo de confirmación
+        dialog = ctk.CTkToplevel(self)
+        dialog.title("Confirmar eliminación")
+        dialog.geometry("350x180")
+        dialog.resizable(False, False)
+        dialog.configure(fg_color=COLORS['pizarra_fondo'])
+
+        # Mensaje
+        mensaje_label = ctk.CTkLabel(
+            dialog,
+            text=mensaje,
+            font=FONTS['tiza_normal'],
+            text_color=COLORS['tiza_blanca'],
+            wraplength=300,
+            justify="center"
+        )
+        mensaje_label.pack(pady=(25, 20))
+
+        # Frame para botones
+        btn_frame = ctk.CTkFrame(dialog, fg_color="transparent")
+        btn_frame.pack(pady=10)
+
+        # Botón Cancelar
+        btn_cancelar = ctk.CTkButton(
+            btn_frame,
+            text="Cancelar",
+            font=FONTS['tiza_small'],
+            fg_color=COLORS['pizarra_borde'],
+            text_color=COLORS['tiza_blanca'],
+            hover_color=COLORS['tiza_gris'],
+            width=100,
+            command=dialog.destroy
+        )
+        btn_cancelar.pack(side="left", padx=10)
+
+        # Botón Eliminar
+        btn_eliminar = ctk.CTkButton(
+            btn_frame,
+            text="Eliminar",
+            font=FONTS['tiza_small'],
+            fg_color="#8B0000",
+            text_color=COLORS['tiza_blanca'],
+            hover_color="#A52A2A",
+            width=100,
+            command=lambda: self._eliminar_pizarra(pizarra_id, dialog)
+        )
+        btn_eliminar.pack(side="left", padx=10)
+
+        # Centrar el diálogo
+        dialog.transient(self)
+        dialog.grab_set()
+
+    def _eliminar_pizarra(self, pizarra_id: str, dialog):
+        """Elimina una pizarra después de confirmación"""
+        dialog.destroy()
+
+        # Eliminar de storage y tab_manager
+        if self.storage.eliminar_pizarra(self.datos, pizarra_id):
+            self.tab_manager.eliminar_pizarra(pizarra_id)
+
+            # Guardar datos
+            self._guardar_datos()
+
+            # Actualizar pizarra activa en datos
+            self.datos['pizarra_activa'] = self.tab_manager.pizarra_activa_id
+
+            # Recrear pestañas
+            self._crear_pestanas()
+
+            # Mostrar contenido de la nueva pizarra activa
+            self._mostrar_contenido_pizarra()
 
     def _agregar_tarea(self):
         """Agrega una nueva tarea a la pizarra activa"""
