@@ -4,7 +4,10 @@ Ventana principal del Pizarrón Digital
 import customtkinter as ctk
 from PIL import Image, ImageDraw, ImageTk, ImageFilter
 import random
-from ui.styles import COLORS, FONTS, WINDOW_CONFIG, TEXTURE_CONFIG
+from ui.styles import (
+    COLORS, FONTS, WINDOW_CONFIG, TEXTURE_CONFIG,
+    TEMAS_FONDO, TEMAS_LETRA, TEMA_ACTUAL, actualizar_colores
+)
 from ui.tab_manager import TabManager
 from ui.task_widget import TaskWidget
 from core.storage import Storage
@@ -34,6 +37,9 @@ class MainWindow(ctk.CTk):
         self.tab_manager = TabManager()
         self.task_manager = TaskManager()
         self.datos = self.storage.cargar_datos()
+
+        # Cargar configuración de tema
+        self._cargar_configuracion_tema()
 
         # Botones de pestañas (para mantener referencias)
         self.tab_buttons = {}
@@ -86,15 +92,41 @@ class MainWindow(ctk.CTk):
         )
         self.pizarra_frame.pack(fill="both", expand=True, padx=4, pady=4)
 
+        # Frame para título y botón de configuración
+        titulo_frame = ctk.CTkFrame(
+            self.pizarra_frame,
+            fg_color="transparent"
+        )
+        titulo_frame.pack(fill="x", padx=30, pady=(20, 10))
+
+        # Espaciador izquierdo para centrar el título
+        spacer_izq = ctk.CTkFrame(titulo_frame, fg_color="transparent", width=40)
+        spacer_izq.pack(side="left")
+
         # Título principal con efecto de tiza
         self.titulo_label = ctk.CTkLabel(
-            self.pizarra_frame,
+            titulo_frame,
             text="Mis Pizarras",
             font=FONTS['tiza_titulo'],
             text_color=COLORS['tiza_blanca'],
             fg_color="transparent"
         )
-        self.titulo_label.pack(pady=(20, 10))
+        self.titulo_label.pack(side="left", expand=True)
+
+        # Botón de configuración (engranaje)
+        btn_config = ctk.CTkButton(
+            titulo_frame,
+            text="⚙",
+            font=('Segoe UI Symbol', 20),
+            fg_color="transparent",
+            text_color=COLORS['tiza_gris'],
+            hover_color=COLORS['pizarra_borde'],
+            width=40,
+            height=40,
+            corner_radius=8,
+            command=self._mostrar_configuracion
+        )
+        btn_config.pack(side="right")
 
         # Línea decorativa debajo del título (simulando tiza)
         self.linea_frame = ctk.CTkFrame(
@@ -781,6 +813,164 @@ class MainWindow(ctk.CTk):
         pizarra = self.tab_manager.obtener_pizarra_por_indice(indice)
         if pizarra:
             self.tab_manager.cambiar_pizarra_activa(pizarra['id'])
+
+    def _cargar_configuracion_tema(self):
+        """Carga la configuración de tema desde los datos"""
+        # Asegurar que existe la configuración
+        if 'configuracion' not in self.datos:
+            self.datos['configuracion'] = {
+                'tema_fondo': 'verde',
+                'tema_letra': 'tiza_blanca'
+            }
+
+        config = self.datos['configuracion']
+
+        # Aplicar tema
+        TEMA_ACTUAL['fondo'] = config.get('tema_fondo', 'verde')
+        TEMA_ACTUAL['letra'] = config.get('tema_letra', 'tiza_blanca')
+        actualizar_colores()
+
+    def _mostrar_configuracion(self):
+        """Muestra el diálogo de configuración de apariencia"""
+        dialog = ctk.CTkToplevel(self)
+        dialog.title("Configuración")
+        dialog.geometry("400x350")
+        dialog.resizable(False, False)
+        dialog.configure(fg_color=COLORS['pizarra_fondo'])
+
+        # Título
+        titulo = ctk.CTkLabel(
+            dialog,
+            text="⚙ Apariencia",
+            font=FONTS['tiza_subtitulo'],
+            text_color=COLORS['tiza_blanca']
+        )
+        titulo.pack(pady=(20, 25))
+
+        # Sección: Color de fondo
+        fondo_label = ctk.CTkLabel(
+            dialog,
+            text="Color de Pizarra:",
+            font=FONTS['tiza_normal'],
+            text_color=COLORS['tiza_blanca']
+        )
+        fondo_label.pack(anchor="w", padx=30)
+
+        # Frame para opciones de fondo
+        fondo_frame = ctk.CTkFrame(dialog, fg_color="transparent")
+        fondo_frame.pack(fill="x", padx=30, pady=(5, 20))
+
+        self.var_fondo = ctk.StringVar(value=TEMA_ACTUAL['fondo'])
+
+        for key, tema in TEMAS_FONDO.items():
+            btn = ctk.CTkRadioButton(
+                fondo_frame,
+                text=tema['nombre'],
+                variable=self.var_fondo,
+                value=key,
+                font=FONTS['tiza_small'],
+                text_color=COLORS['tiza_blanca'],
+                fg_color=COLORS['tiza_amarilla'],
+                hover_color=COLORS['tiza_gris'],
+                border_color=COLORS['tiza_gris']
+            )
+            btn.pack(side="left", padx=10)
+
+        # Sección: Color de letra
+        letra_label = ctk.CTkLabel(
+            dialog,
+            text="Color de Letra:",
+            font=FONTS['tiza_normal'],
+            text_color=COLORS['tiza_blanca']
+        )
+        letra_label.pack(anchor="w", padx=30)
+
+        # Frame para opciones de letra
+        letra_frame = ctk.CTkFrame(dialog, fg_color="transparent")
+        letra_frame.pack(fill="x", padx=30, pady=(5, 30))
+
+        self.var_letra = ctk.StringVar(value=TEMA_ACTUAL['letra'])
+
+        for key, tema in TEMAS_LETRA.items():
+            btn = ctk.CTkRadioButton(
+                letra_frame,
+                text=tema['nombre'],
+                variable=self.var_letra,
+                value=key,
+                font=FONTS['tiza_small'],
+                text_color=COLORS['tiza_blanca'],
+                fg_color=COLORS['tiza_amarilla'],
+                hover_color=COLORS['tiza_gris'],
+                border_color=COLORS['tiza_gris']
+            )
+            btn.pack(side="left", padx=10)
+
+        # Frame para botones
+        btn_frame = ctk.CTkFrame(dialog, fg_color="transparent")
+        btn_frame.pack(pady=20)
+
+        # Botón Cancelar
+        btn_cancelar = ctk.CTkButton(
+            btn_frame,
+            text="Cancelar",
+            font=FONTS['tiza_small'],
+            fg_color=COLORS['pizarra_borde'],
+            text_color=COLORS['tiza_blanca'],
+            hover_color=COLORS['tiza_gris'],
+            width=100,
+            command=dialog.destroy
+        )
+        btn_cancelar.pack(side="left", padx=10)
+
+        # Botón Aplicar
+        btn_aplicar = ctk.CTkButton(
+            btn_frame,
+            text="Aplicar",
+            font=FONTS['tiza_small'],
+            fg_color=COLORS['tiza_amarilla'],
+            text_color=COLORS['pizarra_fondo'],
+            hover_color=COLORS['tiza_blanca'],
+            width=100,
+            command=lambda: self._aplicar_configuracion(dialog)
+        )
+        btn_aplicar.pack(side="left", padx=10)
+
+        # Centrar el diálogo
+        dialog.transient(self)
+        dialog.grab_set()
+
+    def _aplicar_configuracion(self, dialog):
+        """Aplica la configuración seleccionada"""
+        nuevo_fondo = self.var_fondo.get()
+        nueva_letra = self.var_letra.get()
+
+        # Actualizar tema actual
+        TEMA_ACTUAL['fondo'] = nuevo_fondo
+        TEMA_ACTUAL['letra'] = nueva_letra
+        actualizar_colores()
+
+        # Guardar en datos
+        self.datos['configuracion'] = {
+            'tema_fondo': nuevo_fondo,
+            'tema_letra': nueva_letra
+        }
+        self._guardar_datos()
+
+        dialog.destroy()
+
+        # Recrear toda la interfaz para aplicar los nuevos colores
+        self._recrear_interfaz()
+
+    def _recrear_interfaz(self):
+        """Recrea toda la interfaz con los nuevos colores"""
+        # Destruir el frame principal actual
+        self.main_frame.destroy()
+
+        # Actualizar color de fondo de la ventana
+        self.configure(fg_color=COLORS['pizarra_fondo'])
+
+        # Recrear la interfaz
+        self._crear_interfaz()
 
     def ejecutar(self):
         """Inicia el loop principal de la aplicación"""

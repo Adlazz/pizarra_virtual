@@ -57,7 +57,11 @@ class Storage:
                     "tareas": []
                 }
             ],
-            "pizarra_activa": "trabajo"
+            "pizarra_activa": "trabajo",
+            "configuracion": {
+                "tema_fondo": "verde",
+                "tema_letra": "tiza_blanca"
+            }
         }
 
     def cargar_datos(self) -> Dict:
