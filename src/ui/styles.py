@@ -46,10 +46,27 @@ TEMAS_LETRA = {
     },
 }
 
+# Temas de fuente disponibles
+TEMAS_FUENTE = {
+    'tiza': {
+        'nombre': 'Tiza',
+        'familia': 'Segoe Print',
+    },
+    'moderno': {
+        'nombre': 'Moderno',
+        'familia': 'Segoe UI',
+    },
+    'clasico': {
+        'nombre': 'Clásico',
+        'familia': 'Calibri',
+    },
+}
+
 # Configuración actual (se actualiza dinámicamente)
 TEMA_ACTUAL = {
     'fondo': 'verde',
     'letra': 'tiza_blanca',
+    'fuente': 'tiza',
 }
 
 def obtener_colores():
@@ -75,13 +92,21 @@ def actualizar_colores():
     global COLORS
     COLORS.update(obtener_colores())
 
-# Fuentes con estilo manuscrito/tiza
+# Fuentes (se actualizan dinámicamente)
 FONTS = {
     'tiza_titulo': ('Segoe Print', 24, 'bold'),
     'tiza_normal': ('Segoe Print', 16),
     'tiza_small': ('Segoe Print', 12),
     'tiza_subtitulo': ('Segoe Print', 18, 'bold'),
 }
+
+def actualizar_fuentes():
+    """Actualiza el diccionario FONTS con la fuente del tema actual"""
+    familia = TEMAS_FUENTE[TEMA_ACTUAL['fuente']]['familia']
+    FONTS['tiza_titulo'] = (familia, 24, 'bold')
+    FONTS['tiza_normal'] = (familia, 16)
+    FONTS['tiza_small'] = (familia, 12)
+    FONTS['tiza_subtitulo'] = (familia, 18, 'bold')
 
 # Dimensiones de la ventana
 WINDOW_CONFIG = {

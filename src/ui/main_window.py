@@ -6,7 +6,8 @@ from PIL import Image, ImageDraw, ImageTk, ImageFilter
 import random
 from ui.styles import (
     COLORS, FONTS, WINDOW_CONFIG, TEXTURE_CONFIG,
-    TEMAS_FONDO, TEMAS_LETRA, TEMA_ACTUAL, actualizar_colores
+    TEMAS_FONDO, TEMAS_LETRA, TEMAS_FUENTE, TEMA_ACTUAL,
+    actualizar_colores, actualizar_fuentes
 )
 from ui.tab_manager import TabManager
 from ui.task_widget import TaskWidget
@@ -816,25 +817,26 @@ class MainWindow(ctk.CTk):
 
     def _cargar_configuracion_tema(self):
         """Carga la configuración de tema desde los datos"""
-        # Asegurar que existe la configuración
         if 'configuracion' not in self.datos:
             self.datos['configuracion'] = {
                 'tema_fondo': 'verde',
-                'tema_letra': 'tiza_blanca'
+                'tema_letra': 'tiza_blanca',
+                'tema_fuente': 'tiza',
             }
 
         config = self.datos['configuracion']
 
-        # Aplicar tema
         TEMA_ACTUAL['fondo'] = config.get('tema_fondo', 'verde')
         TEMA_ACTUAL['letra'] = config.get('tema_letra', 'tiza_blanca')
+        TEMA_ACTUAL['fuente'] = config.get('tema_fuente', 'tiza')
         actualizar_colores()
+        actualizar_fuentes()
 
     def _mostrar_configuracion(self):
         """Muestra el diálogo de configuración de apariencia"""
         dialog = ctk.CTkToplevel(self)
         dialog.title("Configuración")
-        dialog.geometry("400x350")
+        dialog.geometry("400x450")
         dialog.resizable(False, False)
         dialog.configure(fg_color=COLORS['pizarra_fondo'])
 
@@ -856,7 +858,6 @@ class MainWindow(ctk.CTk):
         )
         fondo_label.pack(anchor="w", padx=30)
 
-        # Frame para opciones de fondo
         fondo_frame = ctk.CTkFrame(dialog, fg_color="transparent")
         fondo_frame.pack(fill="x", padx=30, pady=(5, 20))
 
@@ -885,9 +886,8 @@ class MainWindow(ctk.CTk):
         )
         letra_label.pack(anchor="w", padx=30)
 
-        # Frame para opciones de letra
         letra_frame = ctk.CTkFrame(dialog, fg_color="transparent")
-        letra_frame.pack(fill="x", padx=30, pady=(5, 30))
+        letra_frame.pack(fill="x", padx=30, pady=(5, 20))
 
         self.var_letra = ctk.StringVar(value=TEMA_ACTUAL['letra'])
 
@@ -905,11 +905,38 @@ class MainWindow(ctk.CTk):
             )
             btn.pack(side="left", padx=10)
 
+        # Sección: Fuente
+        fuente_label = ctk.CTkLabel(
+            dialog,
+            text="Fuente:",
+            font=FONTS['tiza_normal'],
+            text_color=COLORS['tiza_blanca']
+        )
+        fuente_label.pack(anchor="w", padx=30)
+
+        fuente_frame = ctk.CTkFrame(dialog, fg_color="transparent")
+        fuente_frame.pack(fill="x", padx=30, pady=(5, 25))
+
+        self.var_fuente = ctk.StringVar(value=TEMA_ACTUAL['fuente'])
+
+        for key, tema in TEMAS_FUENTE.items():
+            btn = ctk.CTkRadioButton(
+                fuente_frame,
+                text=tema['nombre'],
+                variable=self.var_fuente,
+                value=key,
+                font=(tema['familia'], 13),
+                text_color=COLORS['tiza_blanca'],
+                fg_color=COLORS['tiza_amarilla'],
+                hover_color=COLORS['tiza_gris'],
+                border_color=COLORS['tiza_gris']
+            )
+            btn.pack(side="left", padx=10)
+
         # Frame para botones
         btn_frame = ctk.CTkFrame(dialog, fg_color="transparent")
-        btn_frame.pack(pady=20)
+        btn_frame.pack(pady=10)
 
-        # Botón Cancelar
         btn_cancelar = ctk.CTkButton(
             btn_frame,
             text="Cancelar",
@@ -922,7 +949,6 @@ class MainWindow(ctk.CTk):
         )
         btn_cancelar.pack(side="left", padx=10)
 
-        # Botón Aplicar
         btn_aplicar = ctk.CTkButton(
             btn_frame,
             text="Aplicar",
@@ -935,7 +961,6 @@ class MainWindow(ctk.CTk):
         )
         btn_aplicar.pack(side="left", padx=10)
 
-        # Centrar el diálogo
         dialog.transient(self)
         dialog.grab_set()
 
@@ -943,16 +968,18 @@ class MainWindow(ctk.CTk):
         """Aplica la configuración seleccionada"""
         nuevo_fondo = self.var_fondo.get()
         nueva_letra = self.var_letra.get()
+        nueva_fuente = self.var_fuente.get()
 
-        # Actualizar tema actual
         TEMA_ACTUAL['fondo'] = nuevo_fondo
         TEMA_ACTUAL['letra'] = nueva_letra
+        TEMA_ACTUAL['fuente'] = nueva_fuente
         actualizar_colores()
+        actualizar_fuentes()
 
-        # Guardar en datos
         self.datos['configuracion'] = {
             'tema_fondo': nuevo_fondo,
-            'tema_letra': nueva_letra
+            'tema_letra': nueva_letra,
+            'tema_fuente': nueva_fuente,
         }
         self._guardar_datos()
 

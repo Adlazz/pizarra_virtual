@@ -60,7 +60,8 @@ class Storage:
             "pizarra_activa": "trabajo",
             "configuracion": {
                 "tema_fondo": "verde",
-                "tema_letra": "tiza_blanca"
+                "tema_letra": "tiza_blanca",
+                "tema_fuente": "tiza"
             }
         }
 
